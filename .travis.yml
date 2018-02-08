@@ -45,7 +45,7 @@ before_install:
     - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 20
 
 before_script:
-    # - find src/ tests/*.{cc,h} -type f | grep -v 'error' | xargs -n 1 sed -i 's/noexcept\([^(]\|$\)/\1/'
+    - find src/ tests/*.{cc,h} -type f | grep -v 'error' | xargs -n 1 sed -i 's/noexcept\([^(]\|$\)/\1/'
     - mkdir build
     - cd build
     - source /opt/qt59/bin/qt59-env.sh
