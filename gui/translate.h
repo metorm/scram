@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014-2018 Olzhas Rakhimov
+ * Copyright (C) 2018 Olzhas Rakhimov
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,26 +16,19 @@
  */
 
 /// @file
-/// Set of functions with version information
-/// of the core and dependencies.
+/// Translation helper facilities to workaround Qt Linguist shortcomings.
 
 #pragma once
 
-namespace scram::version {
+#include <QObject>
 
-/// @returns Git generated tag recent version.
-const char* describe();
+namespace scram::gui {
 
-/// @returns Build type.
-const char* build();
+/// Forwards to translate function with a default global context.
+template <typename... Ts>
+decltype(auto) _(Ts &&... args)
+{
+    return QObject::tr(std::forward<Ts>(args)...);
+}
 
-/// @returns The core version.
-const char* core();
-
-/// @returns The version of the boost.
-const char* boost();
-
-/// @returns The version of the XML C library.
-const char* libxml();
-
-}  // namespace scram::version
+} // namespace scram::gui

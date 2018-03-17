@@ -101,6 +101,11 @@ struct SettingsError : public Error {
   using Error::Error;
 };
 
+/// The minimum required version is not satisfied.
+struct VersionError : public Error {
+  using Error::Error;
+};
+
 namespace mef {  // MEF specific errors.
 
 /// The MEF container element as namespace.
@@ -154,7 +159,7 @@ struct UndefinedElement : public ValidityError {
 
 /// Unacceptable cycles in model structures.
 struct CycleError : public ValidityError {
-  using ValidityError::ValidityError;
+  CycleError() : ValidityError("Cycle Error") {}
 };
 
 /// Invalid domain for values or arguments.

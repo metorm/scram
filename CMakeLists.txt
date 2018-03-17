@@ -1,3 +1,4 @@
+# vim: set foldmarker={{{,}}} foldlevel=0 foldmethod=marker:
 cmake_minimum_required(VERSION 3.8)
 
 # In-source build prevention.
@@ -6,7 +7,7 @@ set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
 project(SCRAM VERSION 0.16.2 LANGUAGES CXX)
 
-####################### Begin Options ###################
+####################### Begin Options ################### {{{
 
 option(WITH_TCMALLOC "Use TCMalloc if available (#1 preference)" ON)
 option(WITH_JEMALLOC "Use JEMalloc if available (#2 preference)" ON)
@@ -14,16 +15,14 @@ option(WITH_JEMALLOC "Use JEMalloc if available (#2 preference)" ON)
 option(WITH_COVERAGE "Instrument for coverage analysis" OFF)
 option(WITH_PROFILE "Instrument for performance profiling" OFF)
 
-option(HAS_TANGO "The system provides the fall-back Tango icons" OFF)
-
 option(BUILD_GUI "Build the GUI front-end" ON)
 option(BUILD_TESTING "Build the tests" OFF)  # Influences CTest.
 
 option(PACKAGE "Package for distribution" OFF)
 
-####################### End Options ###################
+####################### End Options ##################### }}}
 
-####################### Begin compiler configurations ###################
+####################### Begin compiler configurations ################### {{{
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)  # Needed for Clang Tooling.
 
@@ -40,12 +39,12 @@ endfunction()
 
 add_definitions(-DPROJECT_SOURCE_DIR="${PROJECT_SOURCE_DIR}")  # Needed to print file paths.
 
+# Proactively disable warnings in case Wall/Wextra are enabled outside.
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-sign-compare -Wno-missing-field-initializers")
+
 # Strict debug flags for SCRAM targets (opt-in, must subscribe to quality checks explicitly).
 # NOTE: This is a list unlike CMAKE_CXX_FLAGS.
-set(SCRAM_CXX_FLAGS_DEBUG
-  -Wall -Wextra -Werror -Wno-sign-compare -Wnon-virtual-dtor
-  -Wno-missing-field-initializers -Wold-style-cast
-  )
+set(SCRAM_CXX_FLAGS_DEBUG -Wall -Wextra -Werror -Wnon-virtual-dtor -Wold-style-cast)
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-new-ttp-matching")  # TODO: Boost ICL failure.
@@ -81,9 +80,7 @@ if(WITH_PROFILE)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pg")
 endif()
 
-######################## End compiler configurations ####################
-
-##################### Begin cmake configuration ###################
+##################### Begin cmake configuration ################### {{{
 
 include(CTest)
 
@@ -121,9 +118,9 @@ endif()
 # Tell CMake where the modules are.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 
-######################## End cmake configuration ###################
+######################## End cmake configuration ################### }}}
 
-######################## Begin find libraries ######################
+######################## Begin find libraries ###################### {{{
 
 set(MALLOC "System Malloc")
 # Optional alternative Malloc for optimization.
@@ -163,9 +160,9 @@ list(APPEND LIBS ${CMAKE_DL_LIBS})
 
 message(STATUS "Libraries: ${LIBS}")
 
-########################## End of find libraries ########################
+########################## End of find libraries ######################## }}}
 
-########################## Begin includes ###############################
+########################## Begin includes ############################### {{{
 
 # Include all the discovered system directories.
 include_directories(SYSTEM "${Boost_INCLUDE_DIR}")
@@ -185,17 +182,17 @@ if(BUILD_TESTING)
   add_subdirectory(tests)
 endif()
 
-####################### End includes ####################################
+####################### End includes #################################### }}}
 
-###################### Begin uninstall target ###########################
+###################### Begin uninstall target ########################### {{{
 
 configure_file(cmake/cmake_uninstall.cmake.in cmake_uninstall.cmake @ONLY)
 add_custom_target(uninstall
   COMMAND "${CMAKE_COMMAND}" -P "\"${CMAKE_CURRENT_BINARY_DIR}/cmake_uninstall.cmake\"")
 
-###################### End uninstall target #############################
+###################### End uninstall target ############################# }}}
 
-###################### Begin CPACK configurations ###########################
+###################### Begin CPACK configurations ########################### {{{
 
 if(PACKAGE)
   if(WIN32)
@@ -243,4 +240,4 @@ set(CPACK_COMPONENT_LIBRARIES_REQUIRED ON)
 
 include(CPack)
 
-###################### End CPACK configurations #############################
+###################### End CPACK configurations ############################# }}}
