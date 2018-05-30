@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017-2018 Olzhas Rakhimov
+ * Copyright (C) 2018 Olzhas Rakhimov
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,22 +16,21 @@
  */
 
 /// @file
-/// Test helper functions.
+/// Translation helper facilities to workaround Qt Linguist shortcomings.
 
 #pragma once
 
-#include <string>
+#include <QObject>
 
-#include <boost/filesystem.hpp>
+namespace scram{
+namespace gui {
 
-namespace fs = boost::filesystem;
-
-namespace scram::utility {
-
-/// Generate unique file path for temporary files.
-inline fs::path GenerateFilePath(const std::string& prefix = "scram_test") {
-  fs::path unique_name = prefix + "-" + fs::unique_path().string();
-  return fs::temp_directory_path() / unique_name;
+/// Forwards to translate function with a default global context.
+template <typename... Ts>
+decltype(auto) _(Ts &&... args)
+{
+    return QObject::tr(std::forward<Ts>(args)...);
 }
 
-}  // namespace scram::utility
+}
+} // namespace scram::gui

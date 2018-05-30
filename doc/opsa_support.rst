@@ -22,7 +22,7 @@ The initiative deals with the following issues in the current PSA:
 - No universal format for industry data
 
 In order to facilitate information exchange and quality assurance,
-The Open-PSA community has developed a model exchange format([MEF]_) for PSA
+the Open-PSA community has developed a model exchange format([MEF]_) for PSA
 that covers most needs to describe the analysis input for PSA tools.
 Moreover, the MEF defines the following requirements
 for its development and use:
@@ -91,14 +91,15 @@ to identify the supported and unsupported features.
 Deviations from the Open-PSA MEF
 ================================
 
+- Arbitrary nesting of Boolean formulae is `not allowed <https://github.com/open-psa/mef/pull/58>`_.
+- XOR and IFF connectives `require exactly 2 arguments <https://github.com/open-psa/mef/pull/59>`_.
 - Extern function and library are implemented following
   `the new proposal <https://github.com/open-psa/mef/pull/53>`_.
 - `XInclude instead of the 'include' directive <https://github.com/open-psa/mef/pull/47>`_.
 - Redefinition of fault tree variables (e.g., basic-events, parameters) is an
   `error <https://github.com/open-psa/mef/issues/50>`_.
 - Substitution names are required.
-- Attributes are not inherited.
-  `Issue #231 <https://github.com/rakhimov/scram/issues/231>`_
+- Attributes must be `unique <https://github.com/open-psa/mef/issues/60>`_.
 - Recursive parameters are not allowed.
 - Recursive event-tree rules and links (instructions) are not allowed.
 - Mixing collect-expression and collect-formula is not allowed.

@@ -24,9 +24,13 @@
 
 #include <QAbstractTableModel>
 
+#ifndef Q_MOC_RUN
 #include "src/fault_tree_analysis.h"
+#endif
 
-namespace scram::gui::model {
+namespace scram {
+namespace gui {
+namespace model {
 
 /// The table model for immutable analysis products.
 class ProductTableModel : public QAbstractTableModel
@@ -68,4 +72,6 @@ private:
     bool m_withProbability; ///< The flag for probability data inclusion.
 };
 
+}
+}
 } // namespace scram::gui::model

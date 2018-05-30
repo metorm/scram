@@ -55,16 +55,25 @@ TEST_CASE("InitializerTest.PassTheSameFileTwice", "[mef::initializer]") {
   std::string the_same_path =  // Path obfuscation.
       "tests/../tests/input/fta/correct_tree_input.xml";
   CHECK_THROWS_AS(Initializer({input_correct, the_same_path}, core::Settings()),
-                  ValidityError);
+                  IOError);
 }
 
 // Test if the schema catches errors.
 // This is trusted to XML libraries and the correctness of the RELAX NG schema,
 // so the test is very basic calls.
 TEST_CASE("InitializerTest.FailSchemaValidation", "[mef::initializer]") {
-  CHECK_THROWS_AS(
-      Initializer({"tests/input/schema_fail.xml"}, core::Settings()),
-      xml::ValidityError);
+  std::string dir = "tests/input/";
+  const char* incorrect_inputs[] = {
+      "schema_fail.xml",
+      "fta/nested_formula.xml",
+      "fta/nested_not_not.xml",
+      "fta/nested_not_constant.xml",
+  };
+  for (const auto& input : incorrect_inputs) {
+    CAPTURE(input);
+    CHECK_THROWS_AS(Initializer({dir + input}, core::Settings()),
+                    xml::ValidityError);
+  }
 }
 
 // Unsupported operations.
@@ -184,7 +193,6 @@ TEST_CASE("InitializerTest.CorrectFtaInputs", "[mef::initializer]") {
                                   "missing_ccf_level_number.xml",
                                   "non_top_gate.xml",
                                   "unused_parameter.xml",
-                                  "nested_formula.xml",
                                   "null_gate_with_label.xml",
                                   "case_sensitivity.xml",
                                   "weibull_lnorm_deviate_2p.xml",
@@ -235,50 +243,54 @@ TEST_CASE("InitializerTest.CorrectProbabilityInputs", "[mef::initializer]") {
 // Test incorrect fault tree inputs
 TEST_CASE("InitializerTest.IncorrectFtaInputs", "[mef::initializer]") {
   std::string dir = "tests/input/fta/";
-  const char* incorrect_inputs[] = {"invalid_probability.xml",
-                                    "private_at_model_scope.xml",
-                                    "doubly_defined_gate.xml",
-                                    "doubly_defined_house.xml",
-                                    "doubly_defined_basic.xml",
-                                    "doubly_defined_parameter.xml",
-                                    "doubly_defined_ccf_group.xml",
-                                    "doubly_defined_component.xml",
-                                    "extra_ccf_level_beta_factor.xml",
-                                    "missing_gate_definition.xml",
-                                    "missing_ccf_factor.xml",
-                                    "missing_ccf_members.xml",
-                                    "missing_arg_expression.xml",
-                                    "undefined_event.xml",
-                                    "undefined_basic_event.xml",
-                                    "undefined_house_event.xml",
-                                    "undefined_gate.xml",
-                                    "undefined_parameter.xml",
-                                    "reference_missing_fault_tree.xml",
-                                    "reference_missing_component.xml",
-                                    "wrong_parameter_unit.xml",
-                                    "name_clash_two_trees.xml",
-                                    "def_clash_basic_gate.xml",
-                                    "def_clash_house_gate.xml",
-                                    "def_clash_gate_primary.xml",
-                                    "def_clash_basic_house.xml",
-                                    "def_clash_house_basic.xml",
-                                    "atleast_gate.xml",
-                                    "cyclic_tree.xml",
-                                    "cyclic_formula.xml",
-                                    "cyclic_parameter.xml",
-                                    "cyclic_expression.xml",
-                                    "invalid_expression.xml",
-                                    "invalid_periodic_test_num_args.xml",
-                                    "repeated_child.xml",
-                                    "repeated_attribute.xml",
-                                    "alpha_ccf_level_error.xml",
-                                    "beta_ccf_level_error.xml",
-                                    "mgl_ccf_level_error.xml",
-                                    "phi_ccf_wrong_sum.xml",
-                                    "ccf_negative_factor.xml",
-                                    "ccf_more_factors_than_needed.xml",
-                                    "ccf_wrong_distribution.xml",
-                                    "repeated_ccf_members.xml"};
+  const char* incorrect_inputs[] = {
+      "invalid_probability.xml",
+      "private_at_model_scope.xml",
+      "doubly_defined_gate.xml",
+      "doubly_defined_house.xml",
+      "doubly_defined_basic.xml",
+      "doubly_defined_parameter.xml",
+      "doubly_defined_ccf_group.xml",
+      "doubly_defined_component.xml",
+      "extra_ccf_level_beta_factor.xml",
+      "missing_gate_definition.xml",
+      "missing_ccf_factor.xml",
+      "missing_ccf_members.xml",
+      "missing_arg_expression.xml",
+      "undefined_event.xml",
+      "undefined_basic_event.xml",
+      "undefined_house_event.xml",
+      "undefined_gate.xml",
+      "undefined_parameter.xml",
+      "reference_missing_fault_tree.xml",
+      "reference_missing_component.xml",
+      "wrong_parameter_unit.xml",
+      "name_clash_two_trees.xml",
+      "def_clash_basic_gate.xml",
+      "def_clash_house_gate.xml",
+      "def_clash_gate_primary.xml",
+      "def_clash_basic_house.xml",
+      "def_clash_house_basic.xml",
+      "atleast_gate.xml",
+      "invalid_min_max_cardinality.xml",
+      "cyclic_tree.xml",
+      "cyclic_formula.xml",
+      "cyclic_parameter.xml",
+      "cyclic_expression.xml",
+      "invalid_expression.xml",
+      "invalid_periodic_test_num_args.xml",
+      "repeated_child.xml",
+      "repeated_attribute.xml",
+      "alpha_ccf_level_error.xml",
+      "beta_ccf_level_error.xml",
+      "mgl_ccf_level_error.xml",
+      "phi_ccf_wrong_sum.xml",
+      "ccf_negative_factor.xml",
+      "ccf_more_factors_than_needed.xml",
+      "ccf_wrong_distribution.xml",
+      "repeated_ccf_members.xml",
+      "duplicate_via_not.xml",
+  };
 
   for (const auto& input : incorrect_inputs) {
     CAPTURE(input);
@@ -346,7 +358,6 @@ TEST_CASE("InitializerTest.IncorrectModelInputs", "[mef::initializer]") {
       "duplicate_extern_libraries.xml",
       "duplicate_extern_functions.xml",
       "undefined_extern_library.xml",
-      "undefined_symbol_extern_function.xml",
       "invalid_num_param_extern_function.xml",
       "undefined_extern_function.xml",
       "invalid_num_args_extern_expression.xml",
@@ -402,8 +413,13 @@ TEST_CASE("InitializerTest.IncorrectModelEmptyInputs", "[mef::initializer]") {
 }
 
 TEST_CASE("InitializerTest.ExternDLError", "[mef::initializer]") {
-  std::string input = "tests/input/model/extern_library_ioerror.xml";
-  CHECK_THROWS_AS(Initializer({input}, core::Settings(), true), DLError);
+  CHECK_THROWS_AS(Initializer({"tests/input/model/extern_library_ioerror.xml"},
+                              core::Settings(), true),
+                  DLError);
+  CHECK_THROWS_AS(
+      Initializer({"tests/input/model/undefined_symbol_extern_function.xml"},
+                  core::Settings(), true),
+      DLError);
 }
 
 // Tests that external libraries are disabled by default.

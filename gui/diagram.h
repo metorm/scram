@@ -27,11 +27,15 @@
 #include <QGraphicsScene>
 #include <QSize>
 
+#ifndef Q_MOC_RUN
 #include "src/event.h"
+#endif
 
 #include "model.h"
 
-namespace scram::gui::diagram {
+namespace scram {
+namespace gui {
+namespace diagram {
 
 /// The base class for probabilistic events in a fault tree.
 ///
@@ -126,15 +130,6 @@ public:
                               QGraphicsItem *parent = nullptr);
 };
 
-/// The event used in Inhibit gates.
-class ConditionalEvent : public Event
-{
-public:
-    /// @copydoc Event::Event
-    explicit ConditionalEvent(model::BasicEvent *event,
-                              QGraphicsItem *parent = nullptr);
-};
-
 /// An alias pointer to a gate.
 class TransferIn : public Event
 {
@@ -159,7 +154,7 @@ public:
          QGraphicsItem *parent = nullptr);
 
     /// Constructs graphics object representing the given gate type.
-    std::unique_ptr<QGraphicsItem> getGateGraphicsType(mef::Operator type);
+    std::unique_ptr<QGraphicsItem> getGateGraphicsType(mef::Connective type);
 
     double width() const override;
 
@@ -204,4 +199,6 @@ private:
     model::Model *m_model; ///< The proxy model providing change signals.
 };
 
+}
+}
 } // namespace scram::gui::diagram

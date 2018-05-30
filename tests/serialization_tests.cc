@@ -17,23 +17,24 @@
 
 #include "serialization.h"
 
-#include <catch.hpp>
+#include <boost/filesystem.hpp>
 
-#include "utility.h"
+#include <catch.hpp>
 
 #include "env.h"
 #include "initializer.h"
 #include "settings.h"
 #include "xml.h"
 
-namespace scram::mef::test {
+namespace fs = boost::filesystem;
 
-static int i = 0;
+namespace scram::mef::test {
 
 TEST_CASE("SerializationTest.InputOutput", "[mef::serialization]") {
   xml::Validator validator(env::install_dir() + "/share/scram/gui.rng");
 
   std::vector<std::vector<std::string>> inputs = {
+      {"tests/input/xml_special_chars.xml"},
       {"tests/input/fta/correct_tree_input.xml"},
       {"tests/input/fta/correct_tree_input_with_probs.xml"},
       {"tests/input/fta/missing_bool_constant.xml"},
@@ -44,12 +45,13 @@ TEST_CASE("SerializationTest.InputOutput", "[mef::serialization]") {
       {"input/Theatre/theatre.xml"},
       {"input/Baobab/baobab2.xml", "input/Baobab/baobab2-basic-events.xml"}};
 
-  std::shared_ptr<Model> model;
+  std::unique_ptr<Model> model;
   for (const auto& input : inputs) {
     INFO("inputs: " +
          Catch::StringMaker<std::vector<std::string>>::convert(input))
     REQUIRE_NOTHROW(model = mef::Initializer(input, core::Settings{}).model());
-    fs::path temp_file = utility::GenerateFilePath();
+    fs::path unique_name = "scram_test-" + fs::unique_path().string();
+    fs::path temp_file = fs::temp_directory_path() / unique_name;
     INFO("temp file: " + temp_file.string());
     REQUIRE_NOTHROW(Serialize(*model, temp_file.string()));
     REQUIRE_NOTHROW(xml::Document(temp_file.string(), &validator));

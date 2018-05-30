@@ -52,12 +52,8 @@ Release
 - [ ] Bump the version
 
     * [ ] Add release notes into ``doc/release``
-
-    * [ ] Update version numbers
-
-        + [ ] CMakeLists.txt
-
-    * Commit the release with *SCRAM x.y.z* (x, y, z being version numbers)
+    * [ ] Update version numbers in CMakeLists.txt
+    * [ ] Commit the release with *SCRAM x.y.z* (x, y, z being version numbers)
 
 - [ ] Release with GitHub automatic tagging with the release notes
 
@@ -68,8 +64,6 @@ Release
 
 - [ ] Update the website
 
-    * [ ] Lizard CCN report
-    * [ ] cppdep report
     * [ ] Sitemap
 
 - [ ] Publish the release notes on the scram-announce mailing list
@@ -78,8 +72,22 @@ Release
 Distributions
 =============
 
-- [ ] Alioth/Debian
+Distros
+-------
+
+- [ ] Salsa/Debian
 - [ ] PPA/Ubuntu
 - [ ] rpms/Fedora
+- [-] Homebrew/macOS
+
+Bundles
+-------
+
 - [ ] Mingw-w64/NSIS/Windows
-- [ ] Homebrew/macOS
+- [ ] Exodus/Linux
+
+Upload
+~~~~~~
+
+- [ ] SourceForge
+- [ ] Bintray

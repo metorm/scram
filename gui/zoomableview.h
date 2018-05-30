@@ -23,7 +23,8 @@
 #include <QGraphicsView>
 #include <QWheelEvent>
 
-namespace scram::gui {
+namespace scram {
+namespace gui {
 
 /// The base class for graphics views with default zoom logic.
 /// The zoom level is given as percents.
@@ -64,4 +65,5 @@ private:
     int m_zoom = 100; ///< The zoom level value in percents.
 };
 
+}
 } // namespace scram::gui

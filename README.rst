@@ -49,6 +49,29 @@ The latest stable release is packaged for `quick installation`_ on various platf
 
 .. contents:: **Table of Contents**
 
+***********************
+Important Notice
+***********************
+
+The main difference of this fork from the original repository is that this fork is tuned to be compiled & run under Windows XP 32-bit version.
+
+To compile it with XP, you need the following toolchain:
+
+====================   ===============
+Package                Minimum Version
+====================   ===============
+mingw-w64              7.2 or higher
+boost                  1.61, compile it manually
+libxml2                2.9.1, compile it manually
+Python                 2.7.3 or 3.3
+Qt                     5.5, compile it manually
+Qt creator             3.5.1, install it from any Qt 5.5 official installer
+====================   ===============
+
+There's no MSYS2 toolkit for Windows XP, so just open the CMakeLists.txt using Qt creator and follow the notice.
+
+After compiling it, **DO NOT** launch the program from Qt creator, for doing so brings mystery segmentation fault.
+Go to the compiled or installed bin directory, copy necessary *.dll files here and launch the program manually.
 
 ***********************
 Building and Installing
@@ -89,6 +112,7 @@ Package                Minimum Version
 ====================   ===============
 TCMalloc               1.7
 JEMalloc               3.6
+Humanity Icons         0.6.13
 ====================   ===============
 
 
@@ -115,7 +139,7 @@ The process is tested on Ubuntu 17.10 using ``apt-get`` as the package manager:
 
 .. code-block:: bash
 
-    sudo apt-get install -y cmake lib{boost-all,xml2,google-perftools,qt5{svg,opengl}5}-dev qt{base,tools}5-dev{,-tools}
+    sudo apt-get install -y cmake lib{boost-all,xml2,google-perftools,qt5{svg,opengl}5}-dev qt{base,tools}5-dev{,-tools} humanity-icon-theme
 
 
 macOS
@@ -241,9 +265,9 @@ The command can also take project configuration and/or input files:
 
     scram-gui path/to/input/files
 
-    scram-gui --config-file path/to/config/file
+    scram-gui --project path/to/project/file
 
-    scram-gui path/to/input/files --config-file path/to/config/file
+    scram-gui path/to/input/files --project path/to/project/file
 
 
 To run tests

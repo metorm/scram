@@ -31,13 +31,16 @@
 
 #include "ui_eventdialog.h"
 
+#ifndef Q_MOC_RUN
 #include "src/event.h"
 #include "src/expression.h"
 #include "src/model.h"
+#endif
 
 #include "model.h"
 
-namespace scram::gui {
+namespace scram {
+namespace gui {
 
 /// The Dialog to create, present, and manipulate event data.
 ///
@@ -61,8 +64,7 @@ public:
         HouseEvent = 1 << 0,
         BasicEvent = 1 << 1,
         Undeveloped = 1 << 2,
-        Conditional = 1 << 3,
-        Gate = 1 << 4
+        Gate = 1 << 3
     };
 
     /// Creates a dialog for the definition of a new event.
@@ -103,14 +105,14 @@ public:
     ///          nullptr if no expression is defined.
     std::unique_ptr<mef::Expression> expression() const;
 
-    /// @returns The operator type for the formula.
-    mef::Operator connective() const
+    /// @returns The connective for the formula.
+    mef::Connective connective() const
     {
-        return static_cast<mef::Operator>(connectiveBox->currentIndex());
+        return static_cast<mef::Connective>(connectiveBox->currentIndex());
     }
 
-    /// @returns The value for the vote number for formulas.
-    int voteNumber() const { return voteNumberBox->value(); }
+    /// @returns The value for the min number for formulas.
+    int minNumber() const { return minNumberBox->value(); }
 
     /// @returns The set of formula argument ids.
     std::vector<std::string> arguments() const;
@@ -193,4 +195,5 @@ private:
     bool m_fixContainerName = false; ///< @todo Implement fault tree change.
 };
 
+}
 } // namespace scram::gui
