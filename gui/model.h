@@ -35,14 +35,18 @@
 #include <QUndoCommand>
 #include <QVariant>
 
+#ifndef Q_MOC_RUN
 #include "src/event.h"
 #include "src/ext/multi_index.h"
 #include "src/model.h"
+#endif
 
 #include "command.h"
 #include "translate.h"
 
-namespace scram::gui::model {
+namespace scram{
+namespace gui{
+namespace model {
 
 /// Fault tree container element management assuming normalized model.
 /// @{
@@ -691,4 +695,6 @@ private:
     /// @}
 };
 
+}
+}
 } // namespace scram::gui::model

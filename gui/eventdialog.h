@@ -31,13 +31,16 @@
 
 #include "ui_eventdialog.h"
 
+#ifndef Q_MOC_RUN
 #include "src/event.h"
 #include "src/expression.h"
 #include "src/model.h"
+#endif
 
 #include "model.h"
 
-namespace scram::gui {
+namespace scram {
+namespace gui {
 
 /// The Dialog to create, present, and manipulate event data.
 ///
@@ -192,4 +195,5 @@ private:
     bool m_fixContainerName = false; ///< @todo Implement fault tree change.
 };
 
+}
 } // namespace scram::gui

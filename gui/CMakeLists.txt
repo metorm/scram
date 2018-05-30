@@ -5,7 +5,7 @@ if(APPLE)
   # Qt5 with Homebrew.
   list(APPEND CMAKE_PREFIX_PATH /usr/local/opt/qt5)
 endif()
-find_package(Qt5 "5.9.1" REQUIRED COMPONENTS
+find_package(Qt5 "5.5" REQUIRED COMPONENTS
   Core Widgets Svg OpenGL PrintSupport Concurrent
   )
 message(STATUS "Found Qt5")

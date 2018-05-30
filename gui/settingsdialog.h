@@ -24,13 +24,16 @@
 
 #include <QDialog>
 
+#ifndef Q_MOC_RUN
 #include "src/settings.h"
+#endif
 
 namespace Ui {
 class SettingsDialog;
 }
 
-namespace scram::gui {
+namespace scram {
+namespace gui {
 
 /// The dialog to present and set analysis settings.
 class SettingsDialog : public QDialog
@@ -57,4 +60,5 @@ private:
     std::unique_ptr<Ui::SettingsDialog> ui; ///< The dialog UI.
 };
 
+}
 } // namespace scram::gui

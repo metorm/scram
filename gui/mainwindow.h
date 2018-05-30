@@ -37,9 +37,11 @@
 #include <QTimer>
 #include <QUndoStack>
 
+#ifndef Q_MOC_RUN
 #include "src/model.h"
 #include "src/risk_analysis.h"
 #include "src/settings.h"
+#endif
 
 #include "model.h"
 #include "zoomableview.h"
@@ -48,7 +50,8 @@ namespace Ui {
 class MainWindow;
 }
 
-namespace scram::gui {
+namespace scram {
+namespace gui {
 
 class EventDialog; ///< @todo Static build issues if the header is included.
 
@@ -310,4 +313,5 @@ private:
     std::unique_ptr<core::RiskAnalysis> m_analysis; ///< Report container.
 };
 
+}
 } // namespace scram::gui

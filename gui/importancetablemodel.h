@@ -24,9 +24,13 @@
 
 #include <QAbstractTableModel>
 
+#ifndef Q_MOC_RUN
 #include "src/importance_analysis.h"
+#endif
 
-namespace scram::gui::model {
+namespace scram {
+namespace gui {
+namespace model {
 
 /// Table model wrapping the importance analysis result data.
 ///
@@ -57,4 +61,6 @@ private:
     const std::vector<core::ImportanceRecord> &m_data; ///< The analysis result.
 };
 
+}
+}
 } // namespace scram::gui::model

@@ -52,6 +52,29 @@ The latest stable release is packaged for `quick installation`_ on various platf
 
 .. contents:: **Table of Contents**
 
+***********************
+Important Notice
+***********************
+
+The main difference of this fork from the original repository is that this fork is tuned to be compiled & run under Windows XP 32-bit version.
+
+To compile it with XP, you need the following toolchain:
+
+====================   ===============
+Package                Minimum Version
+====================   ===============
+mingw-w64              7.2 or higher
+boost                  1.61, compile it manually
+libxml2                2.9.1, compile it manually
+Python                 2.7.3 or 3.3
+Qt                     5.5, compile it manually
+Qt creator             3.5.1, install it from any Qt 5.5 official installer
+====================   ===============
+
+There's no MSYS2 toolkit for Windows XP, so just open the CMakeLists.txt using Qt creator and follow the notice.
+
+After compiling it, **DO NOT** launch the program from Qt creator, for doing so brings mystery segmentation fault.
+Go to the compiled or installed bin directory, copy necessary *.dll files here and launch the program manually.
 
 ***********************
 Building and Installing

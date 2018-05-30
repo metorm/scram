@@ -24,9 +24,12 @@
 
 #include <QAbstractItemModel>
 
+#ifndef Q_MOC_RUN
 #include "src/risk_analysis.h"
+#endif
 
-namespace scram::gui {
+namespace scram {
+namespace gui {
 
 /// The report is organized by its top items as analysis identifiers
 /// and its descendant items as analysis result types.
@@ -65,4 +68,5 @@ private:
     const std::vector<core::RiskAnalysis::Result> &m_results; ///< The data.
 };
 
+}
 } // namespace scram::gui

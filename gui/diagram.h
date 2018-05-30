@@ -27,11 +27,15 @@
 #include <QGraphicsScene>
 #include <QSize>
 
+#ifndef Q_MOC_RUN
 #include "src/event.h"
+#endif
 
 #include "model.h"
 
-namespace scram::gui::diagram {
+namespace scram {
+namespace gui {
+namespace diagram {
 
 /// The base class for probabilistic events in a fault tree.
 ///
@@ -195,4 +199,6 @@ private:
     model::Model *m_model; ///< The proxy model providing change signals.
 };
 
+}
+}
 } // namespace scram::gui::diagram

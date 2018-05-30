@@ -22,7 +22,8 @@
 
 #include <QObject>
 
-namespace scram::gui {
+namespace scram{
+namespace gui {
 
 /// Forwards to translate function with a default global context.
 template <typename... Ts>
@@ -31,4 +32,5 @@ decltype(auto) _(Ts &&... args)
     return QObject::tr(std::forward<Ts>(args)...);
 }
 
+}
 } // namespace scram::gui

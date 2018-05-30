@@ -24,12 +24,15 @@
 
 #include <boost/container/flat_set.hpp>
 
+#ifndef Q_MOC_RUN
 #include "src/element.h"
 #include "src/fault_tree.h"
+#endif
 
 #include "model.h"
 
-namespace scram::gui {
+namespace scram {
+namespace gui {
 
 /// The tree representation for the Model constructs.
 class ModelTree : public QAbstractItemModel
@@ -87,4 +90,5 @@ private:
     boost::container::flat_set<mef::FaultTree *, NameComparator> m_faultTrees;
 };
 
+}
 } // namespace scram::gui

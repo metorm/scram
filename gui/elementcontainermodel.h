@@ -28,12 +28,16 @@
 #include <QAbstractItemModel>
 #include <QSortFilterProxyModel>
 
+#ifndef Q_MOC_RUN
 #include "src/element.h"
 #include "src/event.h"
+#endif
 
 #include "model.h"
 
-namespace scram::gui::model {
+namespace scram {
+namespace gui {
+namespace model {
 
 /// The base class for models to list elements in a table.
 ///
@@ -213,4 +217,6 @@ protected:
     /// @}
 };
 
+}
+}
 } // namespace scram::gui::model
