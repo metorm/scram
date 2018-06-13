@@ -102,7 +102,7 @@ Package                Minimum Version
 CMake                  3.8
 boost                  1.61
 libxml2                2.9.1
-Python                 2.7.3 or 3.3
+Python                 3.4
 Qt                     5.9.1
 ====================   ===============
 
@@ -286,7 +286,7 @@ To test the tools in the ``scripts`` directory:
 
 .. code-block:: bash
 
-    .../scram/scripts$ pythom -m pytest test/
+    .../scram/scripts$ python -m pytest test/
 
 To test the command-line call of SCRAM:
 
