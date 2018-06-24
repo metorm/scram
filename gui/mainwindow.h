@@ -121,6 +121,9 @@ private slots:
     /// Exports the current analysis report.
     void exportReportAs();
 
+    /// Exports the current analysis as human-readable report
+    void exportHumanReadableReport();
+
     /// Handles element addition with a dialog.
     void addElement();
 
@@ -254,7 +257,7 @@ private:
     /// Activates the fault tree view.
     ///
     /// @param[in,out] faultTree  The valid fault tree to be shown in graphics.
-    void activateFaultTreeDiagram(mef::FaultTree *faultTree);
+    void activateFaultTreeDiagram(const mef::FaultTree *faultTree);
 
     /// Activates the report tree elements.
     void activateReportTree(const QModelIndex &index);
@@ -295,6 +298,21 @@ private:
 
     /// Runs the analysis with the current model.
     void runAnalysis();
+
+    /// struct to pack the information about the rendered tree image
+    struct RenderedFaultTree{
+        std::string name;
+        std::string fullPath;
+        unsigned int width;
+        unsigned int height;
+    };
+
+    /// Find all fault trees in the current model and render them to images
+    ///
+    /// @param  Temporary directory to store the images
+    /// @return An array containing all names of rendered trees (File names are "0.png", "1.png" etc.)
+    std::vector<RenderedFaultTree> renderFaultTrees(QString targetDirectory);
+
 
     std::unique_ptr<Ui::MainWindow> ui; ///< The main UI of the application.
     QAction *m_undoAction;   ///< The undo action from the undo stack.

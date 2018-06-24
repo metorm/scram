@@ -109,7 +109,7 @@
     </message>
     <message>
         <source>Min:</source>
-      <translation>最小：</translation>
+      <translation>最少子事件数：</translation>
     </message>
     <message>
         <source>Add argument with its ID</source>
@@ -772,7 +772,7 @@
     </message>
     <message>
         <source>Products: %1</source>
-      <translation>积：%1</translation>
+      <translation>结果：%1</translation>
     </message>
     <message>
         <source>Importance: %1</source>
@@ -861,7 +861,7 @@
     </message>
     <message>
         <source>Product</source>
-      <translation>积</translation>
+      <translation>结果</translation>
     </message>
     <message>
         <source>Order</source>
