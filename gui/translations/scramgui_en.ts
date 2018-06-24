@@ -328,6 +328,18 @@
         <source>&amp;Clear List</source>
         <translation type="unfinished"></translation>
     </message>
+    <message>
+        <source>Export Human Readable Report</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Version Error</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Version incompatibility</source>
+        <translation type="unfinished"></translation>
+    </message>
 </context>
 <context>
     <name>NameDialog</name>
@@ -940,6 +952,21 @@
     </message>
     <message>
         <source>Recent Files</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
+    <name>report</name>
+    <message>
+        <source>Save report</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fault tree analysis report</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <source>Fault tree figures</source>
         <translation type="unfinished"></translation>
     </message>
 </context>

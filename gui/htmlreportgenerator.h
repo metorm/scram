@@ -188,7 +188,6 @@ void ReportItemBase<StringType>::writeTitle(StringStreamType &s)
     s << "<H" << std::max(1, std::min(6, ReportItemBase::ItemTitleHeaderLevel)) << ">"
       << title
       << "</H" << std::max(1, std::min(6, ReportItemBase::ItemTitleHeaderLevel)) << ">"
-      << "<br>"
       << std::endl;
 }
 
