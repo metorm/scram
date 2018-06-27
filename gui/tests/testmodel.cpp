@@ -21,6 +21,7 @@
 
 #include "src/expression/constant.h"
 
+#include "gui/overload.h"
 #include "help.h"
 
 using namespace scram;
@@ -151,9 +152,9 @@ void TestModel::testAddFaultTree()
     QVERIFY(proxyModel.faultTrees().empty());
 
     auto spyAdd = ext::SignalSpy(
-        &proxyModel, qOverload<mef::FaultTree *>(&gui::model::Model::added));
+        &proxyModel, OVERLOAD(gui::model::Model, added, mef::FaultTree *));
     auto spyRemove = ext::SignalSpy(
-        &proxyModel, qOverload<mef::FaultTree *>(&gui::model::Model::removed));
+        &proxyModel, OVERLOAD(gui::model::Model, removed, mef::FaultTree *));
 
     auto *address = faultTree.get();
     gui::model::Model::AddFaultTree adder(std::move(faultTree), &proxyModel);
@@ -188,9 +189,9 @@ void TestModel::testRemoveFaultTree()
     TEST_EQ(proxyModel.faultTrees().size(), 1);
 
     auto spyAdd = ext::SignalSpy(
-        &proxyModel, qOverload<mef::FaultTree *>(&gui::model::Model::added));
+        &proxyModel, OVERLOAD(gui::model::Model, added, mef::FaultTree *));
     auto spyRemove = ext::SignalSpy(
-        &proxyModel, qOverload<mef::FaultTree *>(&gui::model::Model::removed));
+        &proxyModel, OVERLOAD(gui::model::Model, removed, mef::FaultTree *));
 
     gui::model::Model::RemoveFaultTree remover(address, &proxyModel);
     remover.redo();
@@ -254,9 +255,9 @@ void TestModel::testAddEvent()
     QVERIFY(proxyModel.table<T>().empty());
 
     auto spyAdd =
-        ext::SignalSpy(&proxyModel, qOverload<T *>(&gui::model::Model::added));
-    auto spyRemove = ext::SignalSpy(
-        &proxyModel, qOverload<T *>(&gui::model::Model::removed));
+        ext::SignalSpy(&proxyModel, OVERLOAD(gui::model::Model, added, T *));
+    auto spyRemove =
+        ext::SignalSpy(&proxyModel, OVERLOAD(gui::model::Model, removed, T *));
 
     auto event = std::make_unique<E>("pump");
     auto *address = event.get();
@@ -306,9 +307,9 @@ void TestModel::testRemoveEvent()
     QCOMPARE(proxyEvent->data(), address);
 
     auto spyAdd =
-        ext::SignalSpy(&proxyModel, qOverload<T *>(&gui::model::Model::added));
-    auto spyRemove = ext::SignalSpy(
-        &proxyModel, qOverload<T *>(&gui::model::Model::removed));
+        ext::SignalSpy(&proxyModel, OVERLOAD(gui::model::Model, added, T *));
+    auto spyRemove =
+        ext::SignalSpy(&proxyModel, OVERLOAD(gui::model::Model, removed, T *));
 
     gui::model::Model::RemoveEvent<T> remover(proxyEvent, &proxyModel,
                                               faultTree);
