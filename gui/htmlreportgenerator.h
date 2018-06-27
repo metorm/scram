@@ -97,7 +97,7 @@ private:
 
     bool interlaceColor = true;
     unsigned int borderWidth = 1;
-    unsigned int cellPadding = 2;
+    unsigned int cellPadding = 4;
 };
 
 template<typename StringType>
@@ -312,8 +312,8 @@ StringType ReportItemTable<StringType>::toHTMLString()
     ReportItemBase<StringType>::writeTitle(htmlStream);
 
     htmlStream << "<table align=\"" << ReportItemBase<StringType>::alignStytleString  << "\" "
-               << "style=\"border-collapse: collapse; border:" << borderWidth + 1 << "px solid;"
-               << "cellpadding:" << cellPadding << "\" "
+               << "style=\"border-collapse: collapse; border:" << borderWidth + 1 << "px solid\" "
+               << "cellpadding=\"" << cellPadding << "\" "
                << "border=\"" << borderWidth <<"\""
                << " >" /* end of <table ... >*/<< std::endl;
 
