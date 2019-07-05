@@ -32,7 +32,6 @@
 #include <QMessageBox>
 #include <QPrinter>
 #include <QProgressDialog>
-#include <QSvgGenerator>
 #include <QtConcurrent>
 #include <QtOpenGL>
 #include <QTreeWidgetItemIterator>
@@ -57,6 +56,7 @@
 #include "src/xml.h"
 
 #include "diagram.h"
+#include "diagramview.h"
 #include "elementcontainermodel.h"
 #include "eventdialog.h"
 #include "guiassert.h"
@@ -64,7 +64,6 @@
 #include "modeltree.h"
 #include "overload.h"
 #include "preferencesdialog.h"
-#include "printable.h"
 #include "producttablemodel.h"
 #include "reporttree.h"
 #include "settingsdialog.h"
@@ -119,41 +118,6 @@ private:
         if (event->key() == Qt::Key_Escape)
             return event->accept();
         QProgressDialog::keyPressEvent(event);
-    }
-};
-
-/// The default view for graphics views (e.g., fault tree diagram).
-class DiagramView : public ZoomableView, public Printable
-{
-public:
-    using ZoomableView::ZoomableView;
-
-    /// Exports the image of the diagram.
-    void exportAs()
-    {
-        QString filename = QFileDialog::getSaveFileName(
-            this, _("Export As"), QDir::homePath(),
-            _("SVG files (*.svg);;All files (*.*)"));
-        QSize sceneSize = scene()->sceneRect().size().toSize();
-
-        QSvgGenerator generator;
-        generator.setFileName(filename);
-        generator.setSize(sceneSize);
-        generator.setViewBox(
-            QRect(0, 0, sceneSize.width(), sceneSize.height()));
-        generator.setTitle(filename);
-        QPainter painter;
-        painter.begin(&generator);
-        scene()->render(&painter);
-        painter.end();
-    }
-
-private:
-    void doPrint(QPrinter *printer) override
-    {
-        QPainter painter(printer);
-        painter.setRenderHint(QPainter::Antialiasing);
-        scene()->render(&painter);
     }
 };
 
@@ -287,17 +251,17 @@ void displayError(const scram::Error &err, const QString &title,
 
 } // namespace
 
-bool MainWindow::setConfig(const std::string &configPath,
-                           std::vector<std::string> inputFiles)
+bool MainWindow::setProjectFile(const std::string &projectFilePath,
+                                std::vector<std::string> inputFiles)
 {
     try {
-        Project config(configPath);
-        inputFiles.insert(inputFiles.begin(), config.input_files().begin(),
-                          config.input_files().end());
-        mef::Initializer(inputFiles, config.settings());
+        Project project(projectFilePath);
+        inputFiles.insert(inputFiles.begin(), project.input_files().begin(),
+                          project.input_files().end());
+        mef::Initializer(inputFiles, project.settings());
         if (!addInputFiles(inputFiles))
             return false;
-        m_settings = config.settings();
+        m_settings = project.settings();
     } catch (const scram::IOError &err) {
         displayError(err, _("Configuration file error"), this);
         return false;
@@ -310,7 +274,7 @@ bool MainWindow::setConfig(const std::string &configPath,
                      this);
         return false;
     } catch (const scram::VersionError &err) {
-        displayError(err, tr("Version Error"), tr("Version incompatibility"),
+        displayError(err, _("Version Error"), _("Version incompatibility"),
                      this);
         return false;
     }
@@ -363,7 +327,7 @@ bool MainWindow::addInputFiles(const std::vector<std::string> &inputFiles)
         return false;
     }
 
-    emit configChanged();
+    emit projectChanged();
     return true;
 }
 
@@ -557,7 +521,7 @@ void MainWindow::setupConnections()
     });
     connect(ui->actionRun, &QAction::triggered, this, &MainWindow::runAnalysis);
 
-    connect(this, &MainWindow::configChanged, [this] {
+    connect(this, &MainWindow::projectChanged, [this] {
         m_undoStack->clear();
         setWindowTitle(QStringLiteral("%1[*]").arg(getModelNameForTitle()));
         ui->actionSaveAs->setEnabled(true);
@@ -667,7 +631,7 @@ void MainWindow::createNewModel()
     m_inputFiles.clear();
     m_model = std::make_unique<mef::Model>();
 
-    emit configChanged();
+    emit projectChanged();
 }
 
 void MainWindow::openFiles(QString directory)
