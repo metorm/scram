@@ -64,17 +64,17 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    /// Loads a model and analysis configuration from a file.
+    /// Loads a model and analysis from a project file.
     ///
-    /// @param[in] configPath  The path to the configuration file.
+    /// @param[in] projectFilePath  The path to the project configuration file.
     /// @param[in] inputFiles  Additional input files for model initialization.
     ///
     /// @returns true if the initialization is successful.
     ///
     /// @post No side effects are left-over
     ///       if the initialization is not successful.
-    bool setConfig(const std::string &configPath,
-                   std::vector<std::string> inputFiles = {});
+    bool setProjectFile(const std::string &projectFilePath,
+                        std::vector<std::string> inputFiles = {});
 
     /// Adds a new set of model elements from input files.
     ///
@@ -88,8 +88,8 @@ public:
     bool addInputFiles(const std::vector<std::string> &inputFiles);
 
 signals:
-    /// Indicates addition of new input or configuration files.
-    void configChanged();
+    /// Indicates addition of new input or project files.
+    void projectChanged();
 
 private slots:
     /// Opens a new project configuration.
@@ -120,6 +120,9 @@ private slots:
 
     /// Exports the current analysis report.
     void exportReportAs();
+
+    /// Exports the current analysis as human-readable report
+    void exportHumanReadableReport();
 
     /// Handles element addition with a dialog.
     void addElement();
@@ -254,7 +257,7 @@ private:
     /// Activates the fault tree view.
     ///
     /// @param[in,out] faultTree  The valid fault tree to be shown in graphics.
-    void activateFaultTreeDiagram(mef::FaultTree *faultTree);
+    void activateFaultTreeDiagram(const mef::FaultTree *faultTree);
 
     /// Activates the report tree elements.
     void activateReportTree(const QModelIndex &index);
@@ -295,6 +298,21 @@ private:
 
     /// Runs the analysis with the current model.
     void runAnalysis();
+
+    /// struct to pack the information about the rendered tree image
+    struct RenderedFaultTree{
+        std::string name;
+        std::string fullPath;
+        unsigned int width;
+        unsigned int height;
+    };
+
+    /// Find all fault trees in the current model and render them to images
+    ///
+    /// @param  Temporary directory to store the images
+    /// @return An array containing all names of rendered trees (File names are "0.png", "1.png" etc.)
+    std::vector<RenderedFaultTree> renderFaultTrees(QString targetDirectory);
+
 
     std::unique_ptr<Ui::MainWindow> ui; ///< The main UI of the application.
     QAction *m_undoAction;   ///< The undo action from the undo stack.

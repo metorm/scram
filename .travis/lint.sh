@@ -3,7 +3,7 @@
 set -ev
 set -o pipefail
 
-CLANG_FORMAT="./run-clang-format/run-clang-format.py --clang-format-executable clang-format-${CLANG_VERSION}"
+CLANG_FORMAT="python2 ./run-clang-format/run-clang-format.py --clang-format-executable clang-format-${CLANG_VERSION}"
 
 ${CLANG_FORMAT} -r gui/
 ${CLANG_FORMAT} -r src/
@@ -27,4 +27,5 @@ cpplint --quiet tests/*.{cc,h,cc.in}
 
 # Python linting
 yapf -d scripts/*.py scripts/test/*.py tests/*.py
-prospector scripts/*.py
+prospector -o grouped -W pylint scripts/*.py
+pylint scripts/*.py

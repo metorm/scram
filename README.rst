@@ -11,12 +11,8 @@ SCRAM
     :target: https://codecov.io/github/rakhimov/scram?branch=develop
 .. image:: https://scan.coverity.com/projects/2555/badge.svg
     :target: https://scan.coverity.com/projects/2555
-.. image:: https://landscape.io/github/rakhimov/scram/develop/landscape.svg?style=flat
-    :target: https://landscape.io/github/rakhimov/scram/develop
-    :alt: Code Health
-.. image:: https://badge.waffle.io/rakhimov/scram.svg?label=In%20Progress&title=in%20progress
-    :target: https://waffle.io/rakhimov/scram
-    :alt: 'Stories in Progress'
+.. image:: https://api.codacy.com/project/badge/Grade/7067af3e78774325bb33894deac23b9c
+    :target: https://www.codacy.com/app/rakhimov/scram?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=rakhimov/scram&amp;utm_campaign=Badge_Grade
 
 |
 
@@ -168,7 +164,7 @@ the following instructions will install SCRAM dependencies:
 
 .. code-block:: bash
 
-    pacman --noconfirm -S mingw-w64-x86_64-{gcc,make,cmake,boost,libxml2,qt5,jemalloc}
+    pacman --noconfirm -S mingw-w64-x86_64-{gcc,make,cmake,boost,libxml2,qt5}
 
 SCRAM installation and executables must be run inside of the MSYS2 shell.
 

@@ -32,9 +32,12 @@
 #include <QMessageBox>
 #include <QPrinter>
 #include <QProgressDialog>
-#include <QSvgGenerator>
 #include <QtConcurrent>
 #include <QtOpenGL>
+#include <QTreeWidgetItemIterator>
+#include <QTemporaryDir>
+#include <QString>
+#include <QPixmap>
 
 #include <boost/exception/get_error_info.hpp>
 #include <boost/filesystem.hpp>
@@ -53,6 +56,7 @@
 #include "src/xml.h"
 
 #include "diagram.h"
+#include "diagramview.h"
 #include "elementcontainermodel.h"
 #include "eventdialog.h"
 #include "guiassert.h"
@@ -60,12 +64,12 @@
 #include "modeltree.h"
 #include "overload.h"
 #include "preferencesdialog.h"
-#include "printable.h"
 #include "producttablemodel.h"
 #include "reporttree.h"
 #include "settingsdialog.h"
 #include "translate.h"
 #include "validator.h"
+#include "htmlreportgenerator.h"
 
 namespace scram::gui {
 
@@ -114,41 +118,6 @@ private:
         if (event->key() == Qt::Key_Escape)
             return event->accept();
         QProgressDialog::keyPressEvent(event);
-    }
-};
-
-/// The default view for graphics views (e.g., fault tree diagram).
-class DiagramView : public ZoomableView, public Printable
-{
-public:
-    using ZoomableView::ZoomableView;
-
-    /// Exports the image of the diagram.
-    void exportAs()
-    {
-        QString filename = QFileDialog::getSaveFileName(
-            this, _("Export As"), QDir::homePath(),
-            _("SVG files (*.svg);;All files (*.*)"));
-        QSize sceneSize = scene()->sceneRect().size().toSize();
-
-        QSvgGenerator generator;
-        generator.setFileName(filename);
-        generator.setSize(sceneSize);
-        generator.setViewBox(
-            QRect(0, 0, sceneSize.width(), sceneSize.height()));
-        generator.setTitle(filename);
-        QPainter painter;
-        painter.begin(&generator);
-        scene()->render(&painter);
-        painter.end();
-    }
-
-private:
-    void doPrint(QPrinter *printer) override
-    {
-        QPainter painter(printer);
-        painter.setRenderHint(QPainter::Antialiasing);
-        scene()->render(&painter);
     }
 };
 
@@ -282,17 +251,17 @@ void displayError(const scram::Error &err, const QString &title,
 
 } // namespace
 
-bool MainWindow::setConfig(const std::string &configPath,
-                           std::vector<std::string> inputFiles)
+bool MainWindow::setProjectFile(const std::string &projectFilePath,
+                                std::vector<std::string> inputFiles)
 {
     try {
-        Project config(configPath);
-        inputFiles.insert(inputFiles.begin(), config.input_files().begin(),
-                          config.input_files().end());
-        mef::Initializer(inputFiles, config.settings());
+        Project project(projectFilePath);
+        inputFiles.insert(inputFiles.begin(), project.input_files().begin(),
+                          project.input_files().end());
+        mef::Initializer(inputFiles, project.settings());
         if (!addInputFiles(inputFiles))
             return false;
-        m_settings = config.settings();
+        m_settings = project.settings();
     } catch (const scram::IOError &err) {
         displayError(err, _("Configuration file error"), this);
         return false;
@@ -305,7 +274,7 @@ bool MainWindow::setConfig(const std::string &configPath,
                      this);
         return false;
     } catch (const scram::VersionError &err) {
-        displayError(err, tr("Version Error"), tr("Version incompatibility"),
+        displayError(err, _("Version Error"), _("Version incompatibility"),
                      this);
         return false;
     }
@@ -358,7 +327,7 @@ bool MainWindow::addInputFiles(const std::vector<std::string> &inputFiles)
         return false;
     }
 
-    emit configChanged();
+    emit projectChanged();
     return true;
 }
 
@@ -423,6 +392,9 @@ void MainWindow::setupActions()
 
     connect(ui->actionExportReportAs, &QAction::triggered, this,
             &MainWindow::exportReportAs);
+
+    connect(ui->actionHumanReadableExport, &QAction::triggered, this,
+            &MainWindow::exportHumanReadableReport);
 
     QAction *menuRecentFilesStart = ui->menuRecentFiles->actions().front();
     for (QAction *&fileAction : m_recentFileActions) {
@@ -549,7 +521,7 @@ void MainWindow::setupConnections()
     });
     connect(ui->actionRun, &QAction::triggered, this, &MainWindow::runAnalysis);
 
-    connect(this, &MainWindow::configChanged, [this] {
+    connect(this, &MainWindow::projectChanged, [this] {
         m_undoStack->clear();
         setWindowTitle(QStringLiteral("%1[*]").arg(getModelNameForTitle()));
         ui->actionSaveAs->setEnabled(true);
@@ -659,7 +631,7 @@ void MainWindow::createNewModel()
     m_inputFiles.clear();
     m_model = std::make_unique<mef::Model>();
 
-    emit configChanged();
+    emit projectChanged();
 }
 
 void MainWindow::openFiles(QString directory)
@@ -1337,8 +1309,11 @@ void MainWindow::editElement(EventDialog *dialog, model::BasicEvent *element)
             return EventDialog::BasicEvent;
         case model::BasicEvent::Undeveloped:
             return EventDialog::Undeveloped;
+        default:
+            // prevent warning
+            assert(false);
+            return EventDialog::Undeveloped;
         }
-        assert(false);
     };
 
     if (dialog->currentType() != flavorToType(element->flavor())) {
@@ -1614,7 +1589,7 @@ void MainWindow::activateReportTree(const QModelIndex &index)
             [this, widget] { closeTab(ui->tabWidget->indexOf(widget)); });
 }
 
-void MainWindow::activateFaultTreeDiagram(mef::FaultTree *faultTree)
+void MainWindow::activateFaultTreeDiagram(const mef::FaultTree *faultTree)
 {
     GUI_ASSERT(faultTree, );
     GUI_ASSERT(faultTree->top_events().size() == 1, );
@@ -1625,7 +1600,8 @@ void MainWindow::activateFaultTreeDiagram(mef::FaultTree *faultTree)
     view->setScene(scene);
     view->setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
     view->setRenderHints(QPainter::Antialiasing
-                         | QPainter::SmoothPixmapTransform);
+                         | QPainter::SmoothPixmapTransform
+                         | QPainter::HighQualityAntialiasing);
     view->setAlignment(Qt::AlignTop);
     view->ensureVisible(0, 0, 0, 0);
     setupZoomableView(view);
@@ -1667,12 +1643,198 @@ void MainWindow::activateFaultTreeDiagram(mef::FaultTree *faultTree)
 void MainWindow::resetReportTree(std::unique_ptr<core::RiskAnalysis> analysis)
 {
     ui->actionExportReportAs->setEnabled(static_cast<bool>(analysis));
+    ui->actionHumanReadableExport->setEnabled(ui->actionExportReportAs->isEnabled());
 
     auto *oldModel = ui->reportTree->model();
     ui->reportTree->setModel(
         analysis ? new ReportTree(&analysis->results(), this) : nullptr);
     delete oldModel;
     m_analysis = std::move(analysis);
+}
+
+std::vector<MainWindow::RenderedFaultTree> MainWindow::renderFaultTrees(QString targetDirectory)
+{
+    std::vector<MainWindow::RenderedFaultTree> renderedTrees;
+    int counter=0;
+    for (const mef::FaultTree &faultTree : m_model->fault_trees()) {
+        RenderedFaultTree currentTree;
+        currentTree.name = faultTree.name();
+
+        auto *topGate = faultTree.top_events().front();
+        auto *view = new DiagramView(this);
+        auto *scene = new diagram::DiagramScene(
+            m_guiModel->gates().find(topGate)->get(), m_guiModel.get(), view);
+        view->setScene(scene);
+        view->setViewport(new QGLWidget(QGLFormat(QGL::SampleBuffers)));
+        view->setRenderHints(QPainter::Antialiasing
+                             | QPainter::SmoothPixmapTransform);
+        view->setAlignment(Qt::AlignTop);
+        view->ensureVisible(0, 0, 0, 0);
+
+        QRectF sourceQRectF = view->scene()->sceneRect().marginsAdded(QMarginsF(10.0, 10.0, 10.0, 10.0));
+        QImage outImg(static_cast<int>(sourceQRectF.width() + 0.5), static_cast<int>(sourceQRectF.height() + 0.5), QImage::Format_ARGB32);
+        QPainter painter;
+
+        const QRect outImageRec = outImg.rect();
+        currentTree.width = outImageRec.width();
+        currentTree.height = outImageRec.height();
+
+        painter.begin(&outImg);
+        painter.setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing | QPainter::SmoothPixmapTransform);
+        QRectF nullQRectF(QPointF(.0, .0), QPointF(.0, .0));
+        view->scene()->render(&painter, nullQRectF, sourceQRectF);
+        painter.end();
+
+        const QString fileFullPath = QString(targetDirectory + QStringLiteral("/%1.png")).arg(counter);
+        outImg.save(fileFullPath);
+
+        currentTree.fullPath = fileFullPath.toStdString();
+
+        delete scene;
+        delete view;
+
+        renderedTrees.push_back(currentTree);
+
+        ++ counter;
+    }
+
+    return renderedTrees;
+}
+
+void MainWindow::exportHumanReadableReport()
+{
+    QTemporaryDir tempDir;
+    if(tempDir.isValid())
+    {
+        QString homePath = QStandardPaths::standardLocations(QStandardPaths::HomeLocation).at(0);
+        QString reportPath = QFileDialog::getExistingDirectory(this, QApplication::translate("report", "Save report"), homePath);
+        if(!reportPath.isEmpty())
+        {
+            std::vector<RenderedFaultTree> renderedTrees = renderFaultTrees(tempDir.path());
+
+            typedef std::string ReportStringType;
+
+            report::HTMLReportGenerator<ReportStringType> generator(QString(reportPath + QStringLiteral("/report.html")).toStdString());
+            generator.setReportTitle(QApplication::translate("report", "Fault tree analysis report").toStdString());
+
+            { // ---- Add images ----
+                const float maxImageWidth=1024;
+                const float maxImageHeight=512;
+                auto faultTreeImages = std::make_shared<report::ReportImages<ReportStringType> >(
+                            QApplication::translate("report", "Fault tree figures").toStdString());
+                faultTreeImages->setAlignStyle(2u);
+                faultTreeImages->setWidthPixel(1024u);
+                for(size_t i = 0; i < renderedTrees.size(); ++i)
+                {
+                    float scaleRatio = std::min(maxImageWidth/renderedTrees[i].width,
+                                                maxImageHeight/renderedTrees[i].height);
+
+                    const QString newImagePath = QString(reportPath + QStringLiteral("/%1.png")).arg(i);
+                    QFile::copy(QString::fromStdString(renderedTrees[i].fullPath), newImagePath);
+                    faultTreeImages->addImage(
+                                newImagePath.toStdString(),
+                                ReportStringType(renderedTrees[i].name.begin(), renderedTrees[i].name.end()),
+                                static_cast<int>(scaleRatio*renderedTrees[i].width),
+                                static_cast<int>(scaleRatio*renderedTrees[i].height));
+                }
+                generator.addReportElement(faultTreeImages);
+            } // ---- Add images end ----
+
+            { // ---- Add report tree content ----
+                auto *reportTreeModel = ui->reportTree->model();
+                const int resultsRowCount = reportTreeModel->rowCount(QModelIndex());
+
+                auto tableViewToReportTableItem = [](QTableView * inputTable, QString title) -> std::shared_ptr<report::ReportItemTable<std::string> > {
+                    const int tableWidth = inputTable->model()->columnCount(QModelIndex());
+                    const int tableHeight = inputTable->model()->rowCount(QModelIndex());
+
+                    auto returnReportItem = std::make_shared<report::ReportItemTable<std::string> >(static_cast<size_t>(tableWidth));
+                    returnReportItem->setTitle(title.toStdString());
+
+                    {
+                        std::vector<std::string> headers;
+                        for(int col = 0; col < tableWidth; ++ col)
+                        {
+                            headers.push_back(inputTable->model()->headerData(col, Qt::Horizontal).toString().toStdString());
+                        }
+                        returnReportItem->setHeader(headers);
+                    }
+
+                    {
+                        for(int row = 0; row < tableHeight; ++ row)
+                        {
+                            std::vector<std::string> contents;
+                            for(int col = 0; col < tableWidth; ++ col)
+                            {
+                                contents.push_back(inputTable->model()->index(row,col).data().toString().toStdString());
+                            }
+                            returnReportItem->addRow(contents);
+                        }
+                    }
+
+                    return returnReportItem;
+                };
+
+
+                for(int i = 0; i < resultsRowCount; ++i)
+                {
+                    QModelIndex currentLevelOneIndex = reportTreeModel->index(i, 0, QModelIndex());
+                    QString resultName = currentLevelOneIndex.data(Qt::DisplayRole).toString();
+
+                    const int reportItemRowCount = reportTreeModel->rowCount(currentLevelOneIndex);
+                    for(int ii = 0; ii < reportItemRowCount; ++ii)
+                    {
+                        QModelIndex currentLevelTwoIndex = reportTreeModel->index(ii, 0, currentLevelOneIndex);
+                        QString reportItemName = currentLevelTwoIndex.data(Qt::DisplayRole).toString();
+
+                        const core::RiskAnalysis::Result &result = m_analysis->results()[currentLevelOneIndex.row()];
+                        switch (static_cast<ReportTree::Row>(currentLevelTwoIndex.row())) {
+                        case ReportTree::Row::Products: {
+                            // a table containing products
+                            bool withProbability = result.probability_analysis != nullptr;
+                            QTableView *table = constructTableView<model::ProductTableModel>(
+                                        nullptr, result.fault_tree_analysis->products(), withProbability);
+                            table->sortByColumn(withProbability ? 2 : 1, withProbability
+                                                                             ? Qt::DescendingOrder
+                                                                             : Qt::AscendingOrder);
+                            table->setSortingEnabled(true);
+
+                            auto tableItem = tableViewToReportTableItem(
+                                        table,
+                                        QString(QStringLiteral("%1 - %2")).arg(resultName, reportItemName));
+                            tableItem->setAlignStyle(2u);
+
+                            generator.addReportElement(tableItem);
+                            delete table;
+                            break;
+                        }
+                        case ReportTree::Row::Probability:
+                            break;
+                        case ReportTree::Row::Importance: {
+                            QTableView * table = constructTableView<model::ImportanceTableModel>(
+                                nullptr, &(result.importance_analysis->importance()));
+
+                            auto tableItem = tableViewToReportTableItem(
+                                        table,
+                                        QString(QStringLiteral("%1 - %2")).arg(resultName, reportItemName));
+                            tableItem->setAlignStyle(2u);
+                            generator.addReportElement(tableItem);
+
+                            delete table;
+                            break;
+                        }
+                        default:
+                            GUI_ASSERT(false && "Unexpected analysis report data", );
+                        }
+                    }
+                }
+            } // ---- Add report tree content end ----
+
+            generator.doWrite();
+        }
+    }else {
+        QMessageBox::critical(this, QStringLiteral("Error"), QStringLiteral("Failed to create the required temporary directory."));
+    }
 }
 
 } // namespace scram::gui
