@@ -31,7 +31,7 @@ namespace Ui {
 class PreferencesDialog;
 }
 
-namespace scram{
+namespace scram {
 namespace gui {
 
 /// The dialog to present and manage GUI application preferences.
@@ -48,7 +48,8 @@ public:
     /// @param[in,out] autoSaveTimer  The timer to auto-save documents.
     /// @param[in,out] parent  The optional owner of the object.
     explicit PreferencesDialog(QSettings *preferences, QUndoStack *undoStack,
-                               QTimer *autoSaveTimer,
+                               QTimer *autoSaveTimer, bool *drawDescription,
+                               int *treeViewLineWidth,
                                QWidget *parent = nullptr);
     ~PreferencesDialog();
 
@@ -65,9 +66,15 @@ private:
     /// Initializes the dialog with auto-save timer data and connections.
     void setupAutoSave(QTimer *autoSaveTimer);
 
+    /// Initializes the dialog with custom tree view line width.
+    void setupCustomTreeViewLineWidth(int *lineWidth);
+
+    /// Initializes the dialog with show/hide description text in tree view
+    void setupShowHideEventDescription(bool *showEventDescription);
+
     std::unique_ptr<Ui::PreferencesDialog> ui; ///< The Preferences UI.
     QSettings *m_preferences; ///< The persistent preferences to be saved.
 };
 
-}
-} // namespace scram::gui
+} // namespace gui
+} // namespace scram

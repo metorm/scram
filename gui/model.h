@@ -44,8 +44,8 @@
 #include "command.h"
 #include "translate.h"
 
-namespace scram{
-namespace gui{
+namespace scram {
+namespace gui {
 namespace model {
 
 /// Fault tree container element management assuming normalized model.
@@ -197,8 +197,10 @@ public:
             return _("Basic");
         case Undeveloped:
             return _("Undeveloped");
+        default:
+            assert(false);
+            return {};
         }
-        assert(false);
     }
 
     /// Initializes proxy with the MEF basic event and its implicit flavor.
@@ -360,6 +362,7 @@ public:
                 return _("nor");
             default:
                 assert(false && "Unsupported connectives.");
+                return {};
             }
 
         } else {
@@ -368,7 +371,7 @@ public:
     }
 
     /// @returns The number of gate arguments.
-    int numArgs() const { return args().size(); }
+    int numArgs() const { return static_cast<int>(args().size()); }
 
     /// @returns The min number of the gate formula.
     std::optional<int> minNumber() const
@@ -520,7 +523,7 @@ public:
         AddEvent(std::unique_ptr<typename T::Origin> event, Model *model,
                  mef::FaultTree *faultTree = nullptr)
             : QUndoCommand(
-                  _("Add event '%1'").arg(QString::fromStdString(event->id()))),
+                _("Add event '%1'").arg(QString::fromStdString(event->id()))),
               m_model(model), m_proxy(std::make_unique<T>(event.get())),
               m_address(event.get()), m_event(std::move(event)),
               m_faultTree(faultTree)
@@ -602,7 +605,7 @@ public:
                         std::unique_ptr<typename T::Origin> newEvent,
                         Model *model, mef::FaultTree *faultTree = nullptr)
             : QUndoCommand(
-                  _("Change the type of event '%1'").arg(currentEvent->id())),
+                _("Change the type of event '%1'").arg(currentEvent->id())),
               m_switchTo{currentEvent, std::make_unique<T>(newEvent.get()),
                          std::move(newEvent)},
               m_model(model), m_faultTree(faultTree),
@@ -695,6 +698,6 @@ private:
     /// @}
 };
 
-}
-}
-} // namespace scram::gui::model
+} // namespace model
+} // namespace gui
+} // namespace scram

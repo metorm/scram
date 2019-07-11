@@ -49,6 +49,9 @@ const double Event::m_baseHeight = 6.5;
 const double Event::m_idBoxLength = 10;
 const double Event::m_labelBoxHeight = 4;
 
+int Event::lineWidth = 2;
+bool Event::drawDescription = true;
+
 Event::Event(model::Element *event, QGraphicsItem *parent)
     : QGraphicsItem(parent), m_event(event), m_typeGraphics(nullptr)
 {
@@ -95,6 +98,12 @@ QRectF Event::boundingRect() const
 void Event::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                   QWidget * /*widget*/)
 {
+    {
+        QPen newPen(painter->pen());
+        newPen.setWidthF(lineWidth);
+        painter->setPen(newPen);
+    }
+
     if (option->state & QStyle::State_Selected)
         painter->setBrush(QColor("cyan"));
 
@@ -103,10 +112,11 @@ void Event::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     double labelBoxWidth = m_size.width() * w;
     QRectF rect(-labelBoxWidth / 2, 0, labelBoxWidth, m_labelBoxHeight * h);
     painter->drawRect(rect);
-    painter->drawText(rect, Qt::AlignCenter | Qt::TextWordWrap,
-                      painter->fontMetrics().elidedText(
-                          m_event->label(), Qt::ElideRight,
-                          labelBoxWidth * (m_labelBoxHeight - 0.5)));
+    painter->drawText(
+        rect, Qt::AlignCenter | Qt::TextWordWrap,
+        painter->fontMetrics().elidedText(
+            m_event->label(), Qt::ElideRight,
+            static_cast<int>(labelBoxWidth * (m_labelBoxHeight - 0.5))));
 
     painter->drawLine(QPointF(0, m_labelBoxHeight * h),
                       QPointF(0, (m_labelBoxHeight + 1) * h));
@@ -114,9 +124,10 @@ void Event::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
     double idBoxWidth = m_idBoxLength * w;
     QRectF nameRect(-idBoxWidth / 2, (m_labelBoxHeight + 1) * h, idBoxWidth, h);
     painter->drawRect(nameRect);
-    painter->drawText(nameRect, Qt::AlignCenter,
-                      painter->fontMetrics().elidedText(
-                          m_event->id(), Qt::ElideRight, idBoxWidth));
+    painter->drawText(
+        nameRect, Qt::AlignCenter,
+        painter->fontMetrics().elidedText(m_event->id(), Qt::ElideRight,
+                                          static_cast<int>(idBoxWidth)));
 
     painter->drawLine(QPointF(0, (m_labelBoxHeight + 2) * h),
                       QPointF(0, (m_labelBoxHeight + 2.5) * h));

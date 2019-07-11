@@ -66,6 +66,11 @@ public:
     /// @returns The model data event.
     model::Element *data() const { return m_event; }
 
+    // parameters to set appearce uniformly
+
+    static int lineWidth;
+    static bool drawDescription;
+
 protected:
     /// The confining size of the Event graphics in characters.
     /// The derived event types should stay within this confinement.
@@ -199,6 +204,6 @@ private:
     model::Model *m_model; ///< The proxy model providing change signals.
 };
 
-}
-}
-} // namespace scram::gui::diagram
+} // namespace diagram
+} // namespace gui
+} // namespace scram
