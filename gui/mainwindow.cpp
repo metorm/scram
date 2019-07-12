@@ -147,7 +147,7 @@ MainWindow::MainWindow(QWidget *parent)
     loadPreferences();
     setupStartPage();
 
-    drawDescription = diagram::Event::drawDescription;
+    drawDescription = diagram::Event::getDrawDescription();
     treeViewLineWidth = diagram::Event::lineWidth;
 }
 
@@ -439,7 +439,25 @@ void MainWindow::setupActions()
                                  &drawDescription, &treeViewLineWidth, this);
         dialog.exec();
         diagram::Event::lineWidth = treeViewLineWidth;
-        diagram::Event::drawDescription = drawDescription;
+        if (drawDescription != diagram::Event::getDrawDescription()) {
+            // set new configuration value
+            diagram::Event::setDrawDescription(drawDescription);
+            // find all opened tree views and redraw
+            const int nTabs = ui->tabWidget->count();
+            for (int i = 0; i < nTabs; i++) {
+                QWidget *tabContent = ui->tabWidget->widget(i);
+                DiagramView *viewToRedraw =
+                    dynamic_cast<DiagramView *>(tabContent);
+                // if the casting result is not null, then it is a DiagramView
+                if (viewToRedraw) {
+                    diagram::DiagramScene *sceneToRedraw =
+                        dynamic_cast<diagram::DiagramScene *>(
+                            viewToRedraw->scene());
+                    if (sceneToRedraw)
+                        sceneToRedraw->redraw();
+                }
+            }
+        }
     });
 
     // Undo/Redo actions

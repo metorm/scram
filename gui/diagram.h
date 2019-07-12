@@ -57,7 +57,7 @@ public:
     /// @{
     QRectF boundingRect() const final;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
-               QWidget *widget) final;
+               QWidget *widget) override;
     /// @}
 
     /// @returns The width of the whole subgraph.
@@ -69,19 +69,22 @@ public:
     // parameters to set appearce uniformly
 
     static int lineWidth;
-    static bool drawDescription;
+    static void setDrawDescription(bool drawDescription);
+    static bool getDrawDescription();
 
 protected:
     /// The confining size of the Event graphics in characters.
     /// The derived event types should stay within this confinement.
-    static const QSizeF m_size;
+    static QSizeF m_size;
     /// The height of the confining space used only by the Event base class.
-    static const double m_baseHeight;
+    static double m_baseHeight;
     /// The length of the ID box in characters.
     /// The height of the ID box is 1 character.
     static const double m_idBoxLength;
     /// The height of the Label box in characters.
     static const double m_labelBoxHeight;
+    /// draw description box or not
+    static bool drawDescription;
 
     /// Assigns an event to a presentation view.
     ///
@@ -90,12 +93,15 @@ protected:
     explicit Event(model::Element *event, QGraphicsItem *parent = nullptr);
 
     /// @returns The graphics of the derived class.
-    QGraphicsItem *getTypeGraphics() const { return m_typeGraphics; }
+    QAbstractGraphicsShapeItem *getTypeGraphics() const
+    {
+        return m_typeGraphics;
+    }
 
     /// Releases the current derived class item, and sets the new one.
     ///
     /// @param item  The new item to represent the derived type.
-    void setTypeGraphics(QGraphicsItem *item);
+    void setTypeGraphics(QAbstractGraphicsShapeItem *item);
 
     /// @returns Unit width (x) and height (y) for shapes.
     QSizeF units() const;
@@ -103,7 +109,8 @@ protected:
     model::Element *m_event; ///< The model data.
 
 private:
-    QGraphicsItem *m_typeGraphics; ///< The graphics of the derived type.
+    QAbstractGraphicsShapeItem
+        *m_typeGraphics; ///< The graphics of the derived type.
     QMetaObject::Connection m_labelConnection; ///< Tracks the label changes.
     QMetaObject::Connection m_idConnection;    ///< Tracks the ID changes.
 };
@@ -159,12 +166,17 @@ public:
          QGraphicsItem *parent = nullptr);
 
     /// Constructs graphics object representing the given gate type.
-    std::unique_ptr<QGraphicsItem> getGateGraphicsType(mef::Connective type);
+    std::unique_ptr<QAbstractGraphicsShapeItem>
+    getGateGraphicsType(mef::Connective type);
 
     double width() const override;
 
     /// Adds the transfer-out symbol besides the gate shape.
     void addTransferOut();
+
+    /// entry to modify some graphics properties before rendering
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
+               QWidget *widget) final;
 
 private:
     static const QSizeF m_maxSize; ///< The constraints on type graphics.
@@ -172,6 +184,10 @@ private:
 
     double m_width = 0;         ///< Assume the graph does not change its width.
     bool m_transferOut = false; ///< The indication of the transfer-out.
+
+    QAbstractGraphicsShapeItem
+        *connectingLines; ///< The object containing the lines connects the
+                          ///< elements
 };
 
 /// The scene for the fault tree diagram.
@@ -187,6 +203,12 @@ public:
     /// @param[in,out] parent  The optional owner of this object.
     DiagramScene(model::Gate *event, model::Model *model,
                  QObject *parent = nullptr);
+
+    /// Redraws the scene whenever the fault tree changes.
+    ///
+    /// @todo Track changes more accurately.
+    void redraw();
+
 signals:
     /// @param[in] event  The event which graphics received activation.
     void activated(model::Element *event);
@@ -194,11 +216,6 @@ signals:
 private:
     /// Triggers activation with mouse double click.
     void mouseDoubleClickEvent(QGraphicsSceneMouseEvent *mouseEvent) override;
-
-    /// Redraws the scene whenever the fault tree changes.
-    ///
-    /// @todo Track changes more accurately.
-    void redraw();
 
     model::Gate *m_root;   ///< The root gate for signals and redrawing.
     model::Model *m_model; ///< The proxy model providing change signals.

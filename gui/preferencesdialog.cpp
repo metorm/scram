@@ -142,11 +142,20 @@ void PreferencesDialog::setupAutoSave(QTimer *autoSaveTimer)
 
 void PreferencesDialog::setupCustomTreeViewLineWidth(int *treeViewLineWidth)
 {
+    // hard code: default line width 2, see diagram::Event::lineWidth
+    const int defaultTreeViewLineWidth = 2;
+    if (*treeViewLineWidth != defaultTreeViewLineWidth) {
+        ui->checkCustomTreeViewLineWidth->setChecked(true);
+        ui->treeViewLineWidthBox->setEnabled(true);
+    }
+    ui->treeViewLineWidthBox->setValue(*treeViewLineWidth);
+
     connect(ui->checkCustomTreeViewLineWidth, &QCheckBox::toggled,
             [this](bool checked) {
                 ui->treeViewLineWidthBox->setEnabled(checked);
                 if (!checked)
-                    ui->treeViewLineWidthBox->setValue(1);
+                    ui->treeViewLineWidthBox->setValue(
+                        defaultTreeViewLineWidth);
             });
     connect(ui->treeViewLineWidthBox, OVERLOAD(QSpinBox, valueChanged, int),
             [treeViewLineWidth](const int &newValue) {
@@ -157,6 +166,7 @@ void PreferencesDialog::setupCustomTreeViewLineWidth(int *treeViewLineWidth)
 void PreferencesDialog::setupShowHideEventDescription(
     bool *showEventDescription)
 {
+    ui->checkDisplayDescription->setChecked(*showEventDescription);
     connect(ui->checkDisplayDescription, &QCheckBox::toggled,
             [showEventDescription](const bool &newValue) {
                 *showEventDescription = newValue;
