@@ -75,7 +75,7 @@ protected:
     /// @returns The element with the given index (row).
     ///
     /// @pre The index is valid.
-    Element *getElement(int index) const;
+    Element *getElement(unsigned int index) const;
 
     /// @param[in] element  The element in this container model.
     ///
@@ -217,6 +217,6 @@ protected:
     /// @}
 };
 
-}
-}
-} // namespace scram::gui::model
+} // namespace model
+} // namespace gui
+} // namespace scram

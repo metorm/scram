@@ -38,13 +38,17 @@ namespace scram::gui {
 
 PreferencesDialog::PreferencesDialog(QSettings *preferences,
                                      QUndoStack *undoStack,
-                                     QTimer *autoSaveTimer, QWidget *parent)
+                                     QTimer *autoSaveTimer,
+                                     bool *drawDescription,
+                                     int *treeViewLineWidth, QWidget *parent)
     : QDialog(parent), ui(new Ui::PreferencesDialog), m_preferences(preferences)
 {
     ui->setupUi(this);
     setupLanguage();
     setupUndoStack(undoStack);
     setupAutoSave(autoSaveTimer);
+    setupCustomTreeViewLineWidth(treeViewLineWidth);
+    setupShowHideEventDescription(drawDescription);
 }
 
 PreferencesDialog::~PreferencesDialog() = default;
@@ -133,6 +137,39 @@ void PreferencesDialog::setupAutoSave(QTimer *autoSaveTimer)
     connect(ui->checkAutoSave, &QCheckBox::toggled, autoSaveTimer,
             [this, setAutoSave](bool checked) {
                 setAutoSave(checked ? ui->autoSaveBox->value() : 0);
+            });
+}
+
+void PreferencesDialog::setupCustomTreeViewLineWidth(int *treeViewLineWidth)
+{
+    // hard code: default line width 2, see diagram::Event::lineWidth
+    const int defaultTreeViewLineWidth = 2;
+    if (*treeViewLineWidth != defaultTreeViewLineWidth) {
+        ui->checkCustomTreeViewLineWidth->setChecked(true);
+        ui->treeViewLineWidthBox->setEnabled(true);
+    }
+    ui->treeViewLineWidthBox->setValue(*treeViewLineWidth);
+
+    connect(ui->checkCustomTreeViewLineWidth, &QCheckBox::toggled,
+            [this](bool checked) {
+                ui->treeViewLineWidthBox->setEnabled(checked);
+                if (!checked)
+                    ui->treeViewLineWidthBox->setValue(
+                        defaultTreeViewLineWidth);
+            });
+    connect(ui->treeViewLineWidthBox, OVERLOAD(QSpinBox, valueChanged, int),
+            [treeViewLineWidth](const int &newValue) {
+                *treeViewLineWidth = newValue;
+            });
+}
+
+void PreferencesDialog::setupShowHideEventDescription(
+    bool *showEventDescription)
+{
+    ui->checkDisplayDescription->setChecked(*showEventDescription);
+    connect(ui->checkDisplayDescription, &QCheckBox::toggled,
+            [showEventDescription](const bool &newValue) {
+                *showEventDescription = newValue;
             });
 }
 

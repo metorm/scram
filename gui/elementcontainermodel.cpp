@@ -65,10 +65,10 @@ QModelIndex ElementContainerModel::index(int row, int column,
                                          const QModelIndex &parent) const
 {
     GUI_ASSERT(parent.isValid() == false, {});
-    return createIndex(row, column, getElement(row));
+    return createIndex(row, column, getElement(static_cast<unsigned int>(row)));
 }
 
-Element *ElementContainerModel::getElement(int index) const
+Element *ElementContainerModel::getElement(unsigned int index) const
 {
     GUI_ASSERT(index < m_elements.size(), nullptr);
     return m_elements[index];
@@ -83,7 +83,7 @@ int ElementContainerModel::getElementIndex(Element *element) const
 
 void ElementContainerModel::addElement(Element *element)
 {
-    int index = m_elements.size();
+    int index = static_cast<int>(m_elements.size());
     beginInsertRows({}, index, index);
     m_elementToIndex.emplace(element, index);
     m_elements.push_back(element);
@@ -95,7 +95,7 @@ void ElementContainerModel::removeElement(Element *element)
 {
     GUI_ASSERT(m_elementToIndex.count(element), );
     int index = m_elementToIndex.find(element)->second;
-    int lastIndex = m_elements.size() - 1;
+    int lastIndex = static_cast<int>(m_elements.size() - 1);
     auto *lastElement = m_elements.back();
     // The following is basically a swap with the last item.
     beginRemoveRows({}, lastIndex, lastIndex);
@@ -103,17 +103,17 @@ void ElementContainerModel::removeElement(Element *element)
     m_elements.pop_back();
     endRemoveRows();
     if (index != lastIndex) {
-        m_elements[index] = lastElement;
+        m_elements[static_cast<size_t>(index)] = lastElement;
         m_elementToIndex[lastElement] = index;
         emit dataChanged(createIndex(index, 0, lastElement),
                          createIndex(index, columnCount() - 1, lastElement));
     }
-    disconnect(element, 0, this, 0);
+    disconnect(element, nullptr, this, nullptr);
 }
 
 int ElementContainerModel::rowCount(const QModelIndex &parent) const
 {
-    return parent.isValid() ? 0 : m_elements.size();
+    return parent.isValid() ? 0 : static_cast<int>(m_elements.size());
 }
 
 BasicEventContainerModel::BasicEventContainerModel(Model *model,
@@ -370,7 +370,8 @@ QVariant GateContainerModel::data(const QModelIndex &index, int role) const
     if (value & m_parentMask) {
         auto *parent = reinterpret_cast<Gate *>(value & ~m_parentMask);
         return QString::fromStdString(
-            ext::as<const mef::Event *>(parent->args().at(index.row()).event)
+            ext::as<const mef::Event *>(
+                parent->args().at(static_cast<size_t>(index.row())).event)
                 ->id());
     }
 

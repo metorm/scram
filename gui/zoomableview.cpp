@@ -47,7 +47,7 @@ void ZoomableView::zoomBestFit()
         static_cast<double>(viewSize.height()) / sceneSize.height();
     double ratioWidth =
         static_cast<double>(viewSize.width()) / sceneSize.width();
-    setZoom(std::min(ratioHeight, ratioWidth) * 100);
+    setZoom(static_cast<int>(std::min(ratioHeight, ratioWidth) * 100));
 }
 
 void ZoomableView::wheelEvent(QWheelEvent *event)

@@ -44,10 +44,13 @@
 
 namespace scram::gui::diagram {
 
-const QSizeF Event::m_size = {16, 11};
-const double Event::m_baseHeight = 6.5;
-const double Event::m_idBoxLength = 10;
+QSizeF Event::m_size = {14, 11};
+double Event::m_baseHeight = 6.5;
+const double Event::m_idBoxLength = 14;
 const double Event::m_labelBoxHeight = 4;
+
+int Event::lineWidth = 2;
+bool Event::drawDescription = true;
 
 Event::Event(model::Element *event, QGraphicsItem *parent)
     : QGraphicsItem(parent), m_event(event), m_typeGraphics(nullptr)
@@ -76,12 +79,23 @@ double Event::width() const
     return m_size.width() * units().width();
 }
 
-void Event::setTypeGraphics(QGraphicsItem *item)
+void Event::setDrawDescription(bool drawDescription)
+{
+    Event::drawDescription = drawDescription;
+    m_baseHeight = drawDescription ? 6.5 : 1.5;
+    m_size = drawDescription ? QSizeF(16, 11) : QSizeF(16, 6);
+}
+
+bool Event::getDrawDescription()
+{
+    return drawDescription;
+}
+
+void Event::setTypeGraphics(QAbstractGraphicsShapeItem *item)
 {
     delete m_typeGraphics;
     m_typeGraphics = item;
     m_typeGraphics->setParentItem(this);
-    m_typeGraphics->setPos(0, m_baseHeight * units().height());
 }
 
 QRectF Event::boundingRect() const
@@ -95,31 +109,46 @@ QRectF Event::boundingRect() const
 void Event::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
                   QWidget * /*widget*/)
 {
+    {
+        QPen newPen(painter->pen());
+        newPen.setWidthF(lineWidth);
+        painter->setPen(newPen);
+
+        m_typeGraphics->setPen(newPen);
+        m_typeGraphics->setPos(0, m_baseHeight * units().height());
+    }
+
     if (option->state & QStyle::State_Selected)
         painter->setBrush(QColor("cyan"));
 
     double w = units().width();
     double h = units().height();
-    double labelBoxWidth = m_size.width() * w;
-    QRectF rect(-labelBoxWidth / 2, 0, labelBoxWidth, m_labelBoxHeight * h);
-    painter->drawRect(rect);
-    painter->drawText(rect, Qt::AlignCenter | Qt::TextWordWrap,
-                      painter->fontMetrics().elidedText(
-                          m_event->label(), Qt::ElideRight,
-                          labelBoxWidth * (m_labelBoxHeight - 0.5)));
+    if (drawDescription) {
+        double labelBoxWidth = m_size.width() * w;
+        QRectF rect(-labelBoxWidth / 2, 0, labelBoxWidth, m_labelBoxHeight * h);
+        painter->drawRect(rect);
+        painter->drawText(
+            rect, Qt::AlignCenter | Qt::TextWordWrap,
+            painter->fontMetrics().elidedText(
+                m_event->label(), Qt::ElideRight,
+                static_cast<int>(labelBoxWidth * (m_labelBoxHeight - 0.5))));
 
-    painter->drawLine(QPointF(0, m_labelBoxHeight * h),
-                      QPointF(0, (m_labelBoxHeight + 1) * h));
+        painter->drawLine(QPointF(0, m_labelBoxHeight * h),
+                          QPointF(0, (m_labelBoxHeight + 1) * h));
+    }
 
     double idBoxWidth = m_idBoxLength * w;
-    QRectF nameRect(-idBoxWidth / 2, (m_labelBoxHeight + 1) * h, idBoxWidth, h);
-    painter->drawRect(nameRect);
-    painter->drawText(nameRect, Qt::AlignCenter,
-                      painter->fontMetrics().elidedText(
-                          m_event->id(), Qt::ElideRight, idBoxWidth));
+    double nameRectYStart = drawDescription ? (m_labelBoxHeight + 1) : 0;
 
-    painter->drawLine(QPointF(0, (m_labelBoxHeight + 2) * h),
-                      QPointF(0, (m_labelBoxHeight + 2.5) * h));
+    QRectF nameRect(-idBoxWidth / 2, nameRectYStart * h, idBoxWidth, h);
+    painter->drawRect(nameRect);
+    painter->drawText(
+        nameRect, Qt::AlignCenter,
+        painter->fontMetrics().elidedText(m_event->id(), Qt::ElideRight,
+                                          static_cast<int>(idBoxWidth)));
+
+    painter->drawLine(QPointF(0, (nameRectYStart + 1) * h),
+                      QPointF(0, (nameRectYStart + 1.5) * h));
 }
 
 BasicEvent::BasicEvent(model::BasicEvent *event, QGraphicsItem *parent)
@@ -168,9 +197,13 @@ Gate::Gate(model::Gate *event, model::Model *model,
 {
     double availableHeight =
         m_size.height() - m_baseHeight - m_maxSize.height();
-    auto *pathItem = new QGraphicsLineItem(
-        0, 0, 0, (availableHeight - 1) * units().height(), this);
-    pathItem->setPos(0, (m_baseHeight + m_maxSize.height()) * units().height());
+    double connectingLineYStart =
+        (m_baseHeight + m_maxSize.height()) * units().height();
+    QPainterPath connectingPath;
+    connectingPath.moveTo(0, connectingLineYStart);
+    connectingPath.lineTo(0, connectingLineYStart
+                                 + (availableHeight - 1) * units().height());
+
     Event::setTypeGraphics(getGateGraphicsType(event->type()).release());
     struct
     {
@@ -226,20 +259,36 @@ Gate::Gate(model::Gate *event, model::Model *model,
     for (auto &child : children) {
         child.first->moveBy(-m_width / 2, 0);
         child.second->moveBy(-m_width / 2, 0);
+
+        // copy the line to connectingPath and delete the original one
+        // so we can control its style
+        QLineF currentLine = child.second->line();
+        QPointF basePos = child.second->pos();
+        connectingPath.moveTo(basePos + currentLine.p1());
+        connectingPath.lineTo(basePos + currentLine.p2());
+        delete child.second;
     }
+
     // Add the planar line to complete the connection.
-    if (children.size() > 1)
-        new QGraphicsLineItem(children.front().first->pos().x(), linkY,
-                              children.back().first->pos().x(), linkY, this);
+    if (children.size() > 1) {
+        connectingPath.moveTo(children.front().first->pos().x(), linkY);
+        connectingPath.lineTo(children.back().first->pos().x(), linkY);
+    }
+    connectingLines = new QGraphicsPathItem(connectingPath);
+    connectingLines->setParentItem(this);
 }
 
-std::unique_ptr<QGraphicsItem> Gate::getGateGraphicsType(mef::Connective type)
+std::unique_ptr<QAbstractGraphicsShapeItem>
+Gate::getGateGraphicsType(mef::Connective type)
 {
     static_assert(mef::kNumConnectives > 8, "Unexpected connective changes");
     switch (type) {
-    case mef::kNull:
-        return std::make_unique<QGraphicsLineItem>(
-            0, 0, 0, m_maxSize.height() * units().height());
+    case mef::kNull: {
+        QPainterPath paintPath;
+        paintPath.moveTo(0, 0);
+        paintPath.lineTo(0, m_maxSize.height() * units().height());
+        return std::make_unique<QGraphicsPathItem>(paintPath);
+    }
     case mef::kAnd: {
         double h = m_maxSize.height() * units().height();
         QPainterPath paintPath;
@@ -355,6 +404,18 @@ void Gate::addTransferOut()
     new QGraphicsPathItem(paintPath, Event::getTypeGraphics());
 }
 
+void Gate::paint(QPainter *painter, const QStyleOptionGraphicsItem *option,
+                 QWidget *widget)
+{
+    // change connecting line property
+    QPen newPen(painter->pen());
+    newPen.setWidthF(lineWidth);
+    connectingLines->setPen(newPen);
+
+    // call origin paint function
+    Event::paint(painter, option, widget);
+}
+
 DiagramScene::DiagramScene(model::Gate *event, model::Model *model,
                            QObject *parent)
     : QGraphicsScene(parent), m_root(event), m_model(model)
@@ -415,6 +476,15 @@ void DiagramScene::redraw()
     link(m_root);
     for (const auto &entry : transfer)
         link(m_model->gates().find(entry.first)->get());
+
+    // adjust the scene coverage so there will be appropriate spacing around the
+    // tree
+    setSceneRect(QRectF()); // set a null QRectF to the scence, so later
+                            // sceneRect() would return a QRectF object
+                            // corresponds the real bounding box
+    QRectF contentRec = sceneRect();
+    contentRec.adjust(-5, -20, 5, 100); // hard code: adjust the sceneRect
+    setSceneRect(contentRec);
 }
 
 } // namespace scram::gui::diagram

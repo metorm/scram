@@ -300,7 +300,8 @@ private:
     void runAnalysis();
 
     /// struct to pack the information about the rendered tree image
-    struct RenderedFaultTree{
+    struct RenderedFaultTree
+    {
         std::string name;
         std::string fullPath;
         unsigned int width;
@@ -310,9 +311,9 @@ private:
     /// Find all fault trees in the current model and render them to images
     ///
     /// @param  Temporary directory to store the images
-    /// @return An array containing all names of rendered trees (File names are "0.png", "1.png" etc.)
+    /// @return An array containing all names of rendered trees (File names are
+    /// "0.png", "1.png" etc.)
     std::vector<RenderedFaultTree> renderFaultTrees(QString targetDirectory);
-
 
     std::unique_ptr<Ui::MainWindow> ui; ///< The main UI of the application.
     QAction *m_undoAction;   ///< The undo action from the undo stack.
@@ -322,6 +323,8 @@ private:
     QLineEdit *m_searchBar;  ///< The filter/search bar for main views.
     QTimer *m_autoSaveTimer; ///< The timer to periodically save the model.
     QSettings m_preferences; ///< The persistent global application settings.
+    bool drawDescription;    ///< Option deciding draw description box or not
+    int treeViewLineWidth;   ///< Option deciding the linewidth in tree view
     std::array<QAction *, 5> m_recentFileActions; ///< Recent files.
 
     std::vector<std::string> m_inputFiles;    ///< The project model files.
@@ -331,5 +334,5 @@ private:
     std::unique_ptr<core::RiskAnalysis> m_analysis; ///< Report container.
 };
 
-}
-} // namespace scram::gui
+} // namespace gui
+} // namespace scram
